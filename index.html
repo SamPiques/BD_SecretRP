@@ -42,22 +42,45 @@
   <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/11.png');"></div>
 </div>
 
-<script>
-  $('#flipbook').turn({
-    width: 700,
-    height: 560,
-    autoCenter: true,
-    display: 'single' // une seule page à la fois
-  });
+let currentIndex = 0;
+  const leftPage = document.getElementById("leftPage");
+  const rightPage = document.getElementById("rightPage");
+  const book = document.getElementById("book");
 
-  // Clic pour tourner la page
-  $('#flipbook').click(function() {
-    $(this).turn('next');
+  function renderPages() {
+    leftPage.style.backgroundImage = images[currentIndex] ? `url(${images[currentIndex]})` : "";
+    rightPage.style.backgroundImage = images[currentIndex+1] ? `url(${images[currentIndex+1]})` : "";
+  }
+
+  renderPages();
+
+  book.addEventListener("click", (e) => {
+    const rect = book.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+
+    if (clickX < rect.width / 2 && currentIndex > 0) {
+      leftPage.classList.add("turn-right");
+      setTimeout(() => {
+        currentIndex -= 2;
+        renderPages();
+        leftPage.classList.remove("turn-right");
+      }, 1000);
+    } 
+    else if (clickX >= rect.width / 2 && currentIndex < images.length - 2) {
+      rightPage.classList.add("turn-left");
+      setTimeout(() => {
+        currentIndex += 2;
+        renderPages();
+        rightPage.classList.remove("turn-left");
+      }, 1000);
+    }
   });
 </script>
 
+
 </body>
 </html>
+
 
 
 
