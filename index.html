@@ -1,77 +1,190 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Livre interactif</title>
+<meta charset="utf-8" />
+<title>Livre - 1 page à la fois</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
-  body {
-    background: #444;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 560px;
-    margin: 0;
+  :root{
+    --max-w: 945px;    /* largeur max (25cm ≈ 945px) */
+    --ratio: 25 / 20;  /* ratio largeur/hauteur (paysage 25x20cm) */
   }
-  #book {
-    width: 700px;
-    height: 560px;
+  html,body{height:100%;margin:0;}
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#222;
+    font-family: Arial, Helvetica, sans-serif;
+    padding:20px;
+    box-sizing:border-box;
   }
-  .page img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+
+  /* Conteneur responsive */
+  #viewer{
+    width:90vw;
+    max-width:var(--max-w);
+    aspect-ratio: var(--ratio);
+    perspective: 2000px;
+    position:relative;
+    touch-action: pan-y;
+  }
+
+  /* La page visible */
+  .page{
+    width:100%;
+    height:100%;
+    border-radius:6px;
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.6);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+    will-change: transform, box-shadow;
+    cursor: pointer;
+  }
+
+  /* Animation : on applique une transition sur transform */
+  .no-transition { transition: none !important; }
+  .animate-first { transition: transform 900ms cubic-bezier(.2,.9,.3,1); } /* couverture plus lente */
+  .animate { transition: transform 600ms cubic-bezier(.2,.9,.3,1); }
+
+  /* Ombre "page" pendant le flip (optionnel) */
+  .page.flipping {
+    box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+  }
+
+  /* Indicateur / instruction minimal */
+  #hint{
+    position:absolute;
+    bottom:8px;
+    left:50%;
+    transform:translateX(-50%);
+    color:#eee;
+    font-size:13px;
+    opacity:0.7;
+    pointer-events:none;
   }
 </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.css">
 </head>
 <body>
 
-<div id="book">
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/1.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/2.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/3.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/4.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/5.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/6.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/7.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/8.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/9.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/10.png"></div>
-  <div class="page"><img src="https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/11.png"></div>
+<div id="viewer" aria-label="Livre interactif">
+  <div id="page" class="page"></div>
+  <div id="hint">Cliquer à droite pour avancer • à gauche pour revenir • flèches ← →</div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
 <script>
-  $('#book').turn({
-    width: 1000,
-    height: 700,
-    autoCenter: true,
-    gradients: true,
-    acceleration: true,
-    display: 'double',
-    when: {
-      turning: function(e, page) {
-        // Couverture seule
-        if (page === 1) {
-          $(this).turn('display', 'single');
-        } else {
-          $(this).turn('display', 'double');
-        }
-      }
-    }
-  });
+/* ---------- IMAGES (ordre: couverture puis pages suivantes) ---------- */
+const images = [
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/1.png",  // couverture
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/2.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/3.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/4.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/5.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/6.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/7.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/8.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/9.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/10.png",
+  "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/11.png"
+];
+/* -------------------------------------------------------------------- */
 
-  // Navigation au clic
-  $('#book').on('click', function(e) {
-    var offset = $(this).offset();
-    var center = offset.left + $(this).width() / 2;
-    if (e.pageX < center) {
-      $(this).turn('previous');
-    } else {
-      $(this).turn('next');
-    }
-  });
+const viewer = document.getElementById('viewer');
+const pageEl = document.getElementById('page');
+
+let current = 0;
+let animating = false;
+
+/* Affiche l'image index */
+function show(index){
+  index = Math.max(0, Math.min(images.length - 1, index));
+  pageEl.style.backgroundImage = `url("${images[index]}")`;
+  current = index;
+}
+
+/* Flip to target index; dir = 'next' or 'prev' */
+function flipTo(target, dir){
+  if(animating) return;
+  if(target < 0 || target >= images.length) return;
+  animating = true;
+  const isCover = (current === 0 && dir === 'next'); // special cover animation
+  const halfDuration = isCover ? 450 : 300; // half durations used in setTimeout (ms)
+
+  // choose animation classes
+  pageEl.classList.remove('no-transition','animate','animate-first');
+  pageEl.classList.add(isCover ? 'animate-first' : 'animate');
+  pageEl.classList.add('flipping');
+
+  // First half: rotate out
+  pageEl.style.transform = (dir === 'next') ? 'rotateY(-90deg)' : 'rotateY(90deg)';
+
+  // After first half, swap background and rotate in
+  setTimeout(() => {
+    // swap image
+    pageEl.classList.add('no-transition'); // remove transition to instantly set state
+    pageEl.style.transform = (dir === 'next') ? 'rotateY(90deg)' : 'rotateY(-90deg)';
+    // set next background
+    pageEl.style.backgroundImage = `url("${images[target]}")`;
+
+    // Force reflow
+    void pageEl.offsetWidth;
+
+    // second half animate back to 0
+    pageEl.classList.remove('no-transition');
+    pageEl.style.transform = 'rotateY(0deg)';
+
+    // wait for end of second half
+    setTimeout(() => {
+      pageEl.classList.remove('flipping','animate','animate-first');
+      animating = false;
+      current = target;
+    }, halfDuration + 20);
+  }, halfDuration);
+}
+
+/* Click handler: left half = prev, right half = next */
+viewer.addEventListener('click', (e) => {
+  const rect = viewer.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  if(x < rect.width / 2){
+    // prev
+    if(current > 0) flipTo(current - 1, 'prev');
+  } else {
+    // next
+    if(current < images.length - 1) flipTo(current + 1, 'next');
+  }
+});
+
+/* Keyboard navigation */
+window.addEventListener('keydown', (e) => {
+  if(e.key === 'ArrowRight') {
+    if(current < images.length - 1) flipTo(current + 1, 'next');
+  } else if(e.key === 'ArrowLeft') {
+    if(current > 0) flipTo(current - 1, 'prev');
+  }
+});
+
+/* Touch swipe support (simple) */
+let touchStartX = null;
+viewer.addEventListener('touchstart', (e) => {
+  if(e.touches.length === 1) touchStartX = e.touches[0].clientX;
+});
+viewer.addEventListener('touchend', (e) => {
+  if(touchStartX === null) return;
+  const touchEndX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : null;
+  if(touchEndX === null) { touchStartX = null; return; }
+  const dx = touchStartX - touchEndX;
+  if(Math.abs(dx) > 30){ // swipe threshold
+    if(dx > 0 && current < images.length - 1) flipTo(current + 1, 'next'); // swipe left => next
+    if(dx < 0 && current > 0) flipTo(current - 1, 'prev'); // swipe right => prev
+  }
+  touchStartX = null;
+});
+
+/* Démarrage: afficher la couverture (page 0) */
+show(0);
 </script>
 
 </body>
