@@ -1,111 +1,61 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<title>Livre interactif double-page</title>
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background: #2b2b2b;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  .book {
-    width: 100vw;
-    max-width: 1600px; /* 2 pages côte à côte */
-    height: 1000px;    /* hauteur adaptée à 20×25cm */
-    display: flex;
-    perspective: 2000px;
-    box-shadow: 0 0 30px rgba(0,0,0,0.4);
-  }
-  .page {
-    width: 800px; /* moitié de la largeur max */
-    height: 1000px;
-    background-size: cover;
-    background-position: center;
-    transition: transform 1s ease;
-    position: relative;
-    flex-shrink: 0;
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
-  }
-  .page.left {
-    transform-origin: right center; /* tourne depuis la droite */
-  }
-  .page.right {
-    transform-origin: left center;  /* tourne depuis la gauche */
-  }
-  /* Effets de rotation */
-  .turn-next {
-    transform: rotateY(-180deg);
-    z-index: 1;
-  }
-  .turn-prev {
-    transform: rotateY(180deg);
-    z-index: 1;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Mon Livre</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/blasten/turn.js@4/turn.min.js"></script>
+  <style>
+    body {
+      background: #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #flipbook {
+      width: 1000px; /* largeur affichée */
+      height: 1250px; /* hauteur affichée */
+    }
+    #flipbook .page {
+      width: 1000px;
+      height: 1250px;
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
 </head>
 <body>
 
-<div class="book" id="book">
-  <div class="page left" id="leftPage"></div>
-  <div class="page right" id="rightPage"></div>
+<div id="flipbook">
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/1.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/2.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/3.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/4.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/5.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/6.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/7.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/8.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/9.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/10.png');"></div>
+  <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/11.png');"></div>
 </div>
 
 <script>
-  const images = [
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/1.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/2.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/3.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/4.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/5.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/6.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/7.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/8.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/9.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/10.png",
-    "https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/11.png"
-  ];
+  $('#flipbook').turn({
+    width: 1000,
+    height: 1250,
+    autoCenter: true,
+    display: 'single' // une seule page à la fois
+  });
 
-  let currentIndex = 0;
-  const leftPage = document.getElementById("leftPage");
-  const rightPage = document.getElementById("rightPage");
-  const book = document.getElementById("book");
-
-  function renderPages() {
-    leftPage.style.backgroundImage = images[currentIndex] ? `url(${images[currentIndex]})` : "";
-    rightPage.style.backgroundImage = images[currentIndex+1] ? `url(${images[currentIndex+1]})` : "";
-  }
-
-  renderPages();
-
-  book.addEventListener("click", (e) => {
-    const rect = book.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-
-    if (clickX >= rect.width / 2 && currentIndex < images.length - 2) {
-      // Clic à droite → page suivante
-      rightPage.classList.add("turn-next");
-      setTimeout(() => {
-        currentIndex += 2;
-        renderPages();
-        rightPage.classList.remove("turn-next");
-      }, 1000);
-    } 
-    else if (clickX < rect.width / 2 && currentIndex > 0) {
-      // Clic à gauche → page précédente
-      leftPage.classList.add("turn-prev");
-      setTimeout(() => {
-        currentIndex -= 2;
-        renderPages();
-        leftPage.classList.remove("turn-prev");
-      }, 1000);
-    }
+  // Clic pour tourner la page
+  $('#flipbook').click(function() {
+    $(this).turn('next');
   });
 </script>
 
 </body>
 </html>
+
