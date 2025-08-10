@@ -1,32 +1,51 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Mon Livre</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/blasten/turn.js@4/turn.min.js"></script>
-  <style>
-    body {
-      background: #ccc;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    #flipbook {
-      width: 700px; /* largeur affichée */
-      height: 560px; /* hauteur affichée */
-    }
-    #flipbook .page {
-      width: 700px;
-      height: 560px;
-      background-size: cover;
-      background-position: center;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Livre interactif double-page</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; height: 100%; background: #2b2b2b; display: flex; justify-content: center; align-items: center;
+  }
+  .book {
+    width: 100vw;            /* largeur pleine fenêtre */
+    max-width: 1400px;       /* largeur max (2 pages de 756px) */
+    height: 560px;           /* hauteur exacte */
+    display: flex;
+    perspective: 500px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.4);
+    overflow: visible;
+  }
+  .page {
+    width: 756px;
+    height: 945px;
+    background-size: cover;
+    background-position: center;
+    transition: transform 1s ease;
+    transform-origin: left center;
+    position: relative;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+  }
+  .page.right {
+    transform-origin: right center;
+  }
+  .page.turn-left {
+    transform: rotateY(-180deg);
+    z-index: 1;
+  }
+  .page.turn-right {
+    transform: rotateY(180deg);
+    z-index: 1;
+  }
+</style>
 </head>
 <body>
+
+<div class="book" id="book">
+  <div class="page" id="leftPage"></div>
+  <div class="page right" id="rightPage"></div>
+</div>
 
 <div id="flipbook">
   <div class="page" style="background-image:url('https://comparateurdejeuxvideos.wordpress.com/wp-content/uploads/2025/08/1.png');"></div>
@@ -80,6 +99,7 @@ let currentIndex = 0;
 
 </body>
 </html>
+
 
 
 
